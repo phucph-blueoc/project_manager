@@ -112,3 +112,24 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+class ProjectBase(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+class Project(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str
+    description: str
+    owner_id: uuid.UUID
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectList(SQLModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+
+class ProjectsList(SQLModel):
+    data: list[Project]
+    count: int
