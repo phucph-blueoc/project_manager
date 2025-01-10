@@ -137,14 +137,9 @@ class ProjectsList(SQLModel):
     data: list[Project]
     count: int
     
-class ProjectRole(str, Enum):
-    OWNER = "owner"
-    MEMBER = "member"
-
-
 class Project_User(SQLModel, table=True):
     project_id: uuid.UUID = Field(foreign_key="project.id", primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", primary_key=True)
-    role: ProjectRole = Field(default=ProjectRole.MEMBER)
+    role: str
     project: "Project" = Relationship(back_populates="project_users")
     user: "User" = Relationship(back_populates="project_users")
