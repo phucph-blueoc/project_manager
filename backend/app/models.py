@@ -1,3 +1,4 @@
+from enum import Enum
 import uuid
 
 from pydantic import EmailStr
@@ -44,6 +45,7 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    project_users: list["Project_User"] = Relationship(back_populates="user")
 
 
 # Properties to return via API, id is always required
@@ -122,6 +124,7 @@ class Project(SQLModel, table=True):
     name: str
     description: str
     owner_id: uuid.UUID
+    project_users: list["Project_User"] = Relationship(back_populates="project")
 
 class ProjectCreate(ProjectBase):
     pass
@@ -133,3 +136,15 @@ class ProjectList(SQLModel):
 class ProjectsList(SQLModel):
     data: list[Project]
     count: int
+    
+class ProjectRole(str, Enum):
+    OWNER = "owner"
+    MEMBER = "member"
+
+
+class Project_User(SQLModel, table=True):
+    project_id: uuid.UUID = Field(foreign_key="project.id", primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", primary_key=True)
+    role: ProjectRole = Field(default=ProjectRole.MEMBER)
+    project: "Project" = Relationship(back_populates="project_users")
+    user: "User" = Relationship(back_populates="project_users")
