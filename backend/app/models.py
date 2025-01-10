@@ -52,6 +52,8 @@ class User(UserBase, table=True):
 class UserPublic(UserBase):
     id: uuid.UUID
 
+class Users(SQLModel):
+    id: uuid.UUID
 
 class UsersPublic(SQLModel):
     data: list[UserPublic]
