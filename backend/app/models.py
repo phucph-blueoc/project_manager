@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+from typing import Optional
 import uuid
 
 from pydantic import EmailStr
@@ -44,6 +46,7 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    task: list["Task"] = Relationship(back_populates="assigner")
 
 
 # Properties to return via API, id is always required
@@ -113,23 +116,67 @@ class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
 
+
 class ProjectBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
+
 
 class Project(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str
     description: str
     owner_id: uuid.UUID
+    task: list["Task"] = Relationship(back_populates="project")
+
 
 class ProjectCreate(ProjectBase):
     pass
+
 
 class ProjectList(SQLModel):
     id: uuid.UUID
     owner_id: uuid.UUID
 
+
 class ProjectsList(SQLModel):
     data: list[Project]
+    count: int
+
+
+# =================================================================
+
+
+class TaskBase(SQLModel):
+    name: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+
+
+class Task(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str
+    description: str
+    status: str
+    created_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    end_date: datetime
+    project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False)
+    assigner_id: Optional[uuid.UUID] = Field(
+        foreign_key="user.id", default=None, nullable=True
+    )
+    assigner: list["User"] = Relationship(back_populates="task")
+    project: list["Project"] = Relationship(back_populates="task")
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskPublic(SQLModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    assigner_id: Optional[uuid.UUID]
+
+
+class TasksPublic(SQLModel):
+    data: list[Task]
     count: int
