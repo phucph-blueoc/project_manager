@@ -28,7 +28,7 @@ def create_task(
     session: SessionDep,
     current_user: CurrentUser,
     project_id: uuid.UUID,
-    task_in: TaskCreate,
+    task_in: Task,
 ) -> Any:
     project = session.get(Project, project_id)
     if not project:
@@ -43,9 +43,10 @@ def create_task(
     task = Task(
         name=task_in.name,
         description=task_in.description,
-        status="pending",
-        end_date="2023-05-01",
+        status=task_in.status,
+        end_date=task_in.end_date,
         project_id=project.id,
+        assigner_id=task_in.assigner_id,
     )
     session.add(task)
     session.commit()
@@ -54,16 +55,19 @@ def create_task(
 
 
 @router.get("/", response_model=TasksPublic)
-def read_tasks(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+def read_tasks(
+    session: SessionDep, project_id: uuid.UUID, skip: int = 0, limit: int = 100
+) -> Any:
     """
-    Get list.
+    Get list of tasks
     """
-    count_statement = select(func.count()).select_from(Task)
+    count_statement = (
+        select(func.count()).select_from(Task).where(Task.project_id == project_id)
+    )
     count = session.exec(count_statement).one()
-
-    query = select(Task).offset(skip).limit(limit)
-    projects = session.exec(query).all()
-    return TasksPublic(data=projects, count=count)
+    query = select(Task).where(Task.project_id == project_id).offset(skip).limit(limit)
+    tasks = session.exec(query).all()
+    return TasksPublic(data=tasks, count=count)
 
 
 @router.get("/{id}", response_model=Task)
@@ -81,7 +85,7 @@ def read_task_detail(
     return item
 
 
-@router.put("/{task_id}", response_model=TaskPublic)
+@router.put("/{task_id}", response_model=Task)
 def update_task(
     *,
     session: SessionDep,
