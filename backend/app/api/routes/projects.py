@@ -86,3 +86,11 @@ def delete_project(session: SessionDep, current_user: CurrentUser, id: uuid.UUID
     session.delete(item)
     session.commit()
     return {"message": "Project deleted"}
+
+@router.get("/member")
+def get_member(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+    """
+    Get member.
+    """
+    count_statement = select(func.count()).select_from(Project)
+    count = session.exec(count_statement).one()

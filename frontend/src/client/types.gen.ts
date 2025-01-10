@@ -35,6 +35,28 @@ export type ItemUpdate = {
   description?: string | null
 }
 
+export type ProjectCreate = {
+  name: string
+  description?: string | null
+}
+
+export type ProjectPublic = {
+  name: string
+  description?: string | null
+  id: string
+  owner_id: string
+}
+
+export type ProjectsPublic = {
+  data: Array<ProjectPublic>
+  count: number
+}
+
+export type ProjectUpdate = {
+  name?: string | null
+  description?: string | null
+}
+
 export type Message = {
   message: string
 }
@@ -131,6 +153,38 @@ export type ItemsDeleteItemData = {
 }
 
 export type ItemsDeleteItemResponse = Message
+
+export type ProjectsReadProjectsData = {
+  limit?: number
+  skip?: number
+}
+
+export type ProjectsReadProjectsResponse = ProjectsPublic
+
+export type ProjectsCreateProjectData = {
+  requestBody: ProjectCreate
+}
+
+export type ProjectsCreateProjectResponse = ProjectPublic
+
+export type ProjectsReadProjectData = {
+  id: string
+}
+
+export type ProjectsReadProjectResponse = ProjectPublic
+
+export type ProjectsUpdateProjectData = {
+  id: string
+  requestBody: ProjectUpdate
+}
+
+export type ProjectsUpdateProjectResponse = ProjectPublic
+
+export type ProjectsDeleteProjectData = {
+  id: string
+}
+
+export type ProjectsDeleteProjectResponse = Message
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token

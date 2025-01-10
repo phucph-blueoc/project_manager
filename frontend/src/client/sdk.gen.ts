@@ -44,9 +44,19 @@ import type {
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
+  ProjectsReadProjectsResponse,
+  ProjectsReadProjectsData,
+  ProjectsCreateProjectData,
+  ProjectsCreateProjectResponse,
+  ProjectsReadProjectResponse,
+  ProjectsReadProjectData,
+  ProjectsUpdateProjectData,
+  ProjectsUpdateProjectResponse,
+  ProjectsDeleteProjectData,
+  ProjectsDeleteProjectResponse,
 } from "./types.gen"
 
-export class ItemsService {
+export class ProjectsService {
   /**
    * Read Items
    * Retrieve items.
@@ -56,12 +66,12 @@ export class ItemsService {
    * @returns ItemsPublic Successful Response
    * @throws ApiError
    */
-  public static readItems(
-    data: ItemsReadItemsData = {},
-  ): CancelablePromise<ItemsReadItemsResponse> {
+  public static readProjects(
+    data: ProjectsReadProjectsData = {},
+  ): CancelablePromise<ProjectsReadProjectsResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/",
+      url: "/api/v1/projects/",
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -80,12 +90,12 @@ export class ItemsService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static createItem(
-    data: ItemsCreateItemData,
-  ): CancelablePromise<ItemsCreateItemResponse> {
+  public static createProject(
+    data: ProjectsCreateProjectData,
+  ): CancelablePromise<ProjectsCreateProjectResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/items/",
+      url: "/api/v1/projects/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -102,12 +112,12 @@ export class ItemsService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static readItem(
-    data: ItemsReadItemData,
-  ): CancelablePromise<ItemsReadItemResponse> {
+  public static readProject(
+    data: ProjectsReadProjectData,
+  ): CancelablePromise<ProjectsReadProjectResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/projects/{id}",
       path: {
         id: data.id,
       },
@@ -126,12 +136,12 @@ export class ItemsService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static updateItem(
-    data: ItemsUpdateItemData,
-  ): CancelablePromise<ItemsUpdateItemResponse> {
+  public static updateProject(
+    data: ProjectsUpdateProjectData,
+  ): CancelablePromise<ProjectsUpdateProjectResponse> {
     return __request(OpenAPI, {
       method: "PUT",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/projects/{id}",
       path: {
         id: data.id,
       },
@@ -151,12 +161,12 @@ export class ItemsService {
    * @returns Message Successful Response
    * @throws ApiError
    */
-  public static deleteItem(
-    data: ItemsDeleteItemData,
-  ): CancelablePromise<ItemsDeleteItemResponse> {
+  public static deleteProjects(
+    data: ProjectsDeleteProjectData,
+  ): CancelablePromise<ProjectsDeleteProjectResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/projects/{id}",
       path: {
         id: data.id,
       },
