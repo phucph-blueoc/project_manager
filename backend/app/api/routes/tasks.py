@@ -28,7 +28,7 @@ def create_task(
     session: SessionDep,
     current_user: CurrentUser,
     project_id: uuid.UUID,
-    task_in: TaskCreate,
+    task_in: Task,
 ) -> Any:
     project = session.get(Project, project_id)
     if not project:
@@ -43,9 +43,10 @@ def create_task(
     task = Task(
         name=task_in.name,
         description=task_in.description,
-        status="pending",
-        end_date="2023-05-01",
+        status=task_in.status,
+        end_date=task_in.end_date,
         project_id=project.id,
+        assigner_id=task_in.assigner_id,
     )
     session.add(task)
     session.commit()
