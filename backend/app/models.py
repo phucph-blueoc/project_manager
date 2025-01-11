@@ -163,6 +163,18 @@ class Task(SQLModel, table=True):
     assigner: list["User"] = Relationship(back_populates="task")
     project: list["Project"] = Relationship(back_populates="task")
 
+class TaskGet(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str
+    description: str
+    status: str
+    created_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    end_date: datetime
+    assigner_id: Optional[uuid.UUID] = Field(
+        foreign_key="user.id", default=None, nullable=True
+    )
+    assigner: list["User"] = Relationship(back_populates="task")
+
 
 class TaskCreate(TaskBase):
     pass
@@ -178,3 +190,6 @@ class TasksPublic(SQLModel):
     data: list[Task]
     count: int
 
+class GetListTask(SQLModel):
+    data: list[TaskGet]
+    count: int

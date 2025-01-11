@@ -6,6 +6,7 @@ from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    GetListTask,
     Project,
     # ProjectRole,
     # Project_User,
@@ -54,7 +55,7 @@ def create_task(
     return task
 
 
-@router.get("/", response_model=TasksPublic)
+@router.get("/", response_model=GetListTask)
 def read_tasks(
     session: SessionDep, project_id: uuid.UUID, skip: int = 0, limit: int = 100
 ) -> Any:
@@ -67,7 +68,7 @@ def read_tasks(
     count = session.exec(count_statement).one()
     query = select(Task).where(Task.project_id == project_id).offset(skip).limit(limit)
     tasks = session.exec(query).all()
-    return TasksPublic(data=tasks, count=count)
+    return GetListTask(data=tasks, count=count)
 
 
 @router.get("/{id}", response_model=Task)

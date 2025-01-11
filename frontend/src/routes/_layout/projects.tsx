@@ -9,43 +9,48 @@ import {
   Th,
   Thead,
   Tr,
-} from "@chakra-ui/react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect } from "react"
-import { z } from "zod"
+} from "@chakra-ui/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Router, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { z } from "zod";
 
-import { ProjectsService } from "../../client/index.ts"
-import ActionsMenu from "../../components/Common/ActionsMenu.tsx"
-import Navbar from "../../components/Common/Navbar.tsx"
-import AddItem from "../../components/Items/AddProject.tsx"
-import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
+import { ProjectsService } from "../../client/index.ts";
+import ActionsMenu from "../../components/Common/ActionsMenu.tsx";
+import Navbar from "../../components/Common/Navbar.tsx";
+import AddItem from "../../components/Items/AddProject.tsx";
+import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx";
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
-})
+});
 
 export const Route = createFileRoute("/_layout/projects")({
   component: Projects,
   validateSearch: (search) => itemsSearchSchema.parse(search),
-})
+});
 
-const PER_PAGE = 5
+const PER_PAGE = 5;
 
 function getProjectsQueryOptions({ page }: { page: number }) {
   return {
     queryFn: () =>
-      ProjectsService.readProjects({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
+      ProjectsService.readProjects({
+        skip: (page - 1) * PER_PAGE,
+        limit: PER_PAGE,
+      }),
     queryKey: ["projects", { page }],
-  }
+  };
 }
 
 function ProjectsTable() {
-  const queryClient = useQueryClient()
-  const { page } = Route.useSearch()
-  const navigate = useNavigate({ from: Route.fullPath })
+  const queryClient = useQueryClient();
+  const { page } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const setPage = (page: number) =>
-    navigate({ search: (prev: {[key: string]: string}) => ({ ...prev, page }) })
+    navigate({
+      search: (prev: { [key: string]: string }) => ({ ...prev, page }),
+    });
 
   const {
     data: projects,
@@ -54,16 +59,20 @@ function ProjectsTable() {
   } = useQuery({
     ...getProjectsQueryOptions({ page }),
     placeholderData: (prevData) => prevData,
-  })
+  });
 
-  const hasNextPage = !isPlaceholderData && projects?.data.length === PER_PAGE
-  const hasPreviousPage = page > 1
+  const hasNextPage = !isPlaceholderData && projects?.data.length === PER_PAGE;
+  const hasPreviousPage = page > 1;
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getProjectsQueryOptions({ page: page + 1 }))
+      queryClient.prefetchQuery(getProjectsQueryOptions({ page: page + 1 }));
     }
-  }, [page, queryClient, hasNextPage])
+  }, [page, queryClient, hasNextPage]);
+
+  const navigateRouteTask = useNavigate();
+  const navigateToTask = (prjId: string) =>
+    navigateRouteTask({ to: "/tasks", search: { id: prjId } });
 
   return (
     <>
@@ -89,7 +98,11 @@ function ProjectsTable() {
           ) : (
             <Tbody>
               {projects?.data.map((project) => (
-                <Tr key={project.id} opacity={isPlaceholderData ? 0.5 : 1}>
+                <Tr
+                  key={project.id}
+                  opacity={isPlaceholderData ? 0.5 : 1}
+                  onClick={() => navigateToTask(project.id)}
+                >
                   <Td isTruncated minWidth="150px">
                     {project.name}
                   </Td>
@@ -101,7 +114,14 @@ function ProjectsTable() {
                     {project.description || "N/A"}
                   </Td>
                   <Td>
-                    <ActionsMenu type={"Project"} value={project} />
+                    <div
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                    >
+                      <ActionsMenu type={"Project"} value={project} />
+                    </div>
                   </Td>
                 </Tr>
               ))}
@@ -116,7 +136,7 @@ function ProjectsTable() {
         hasPreviousPage={hasPreviousPage}
       />
     </>
-  )
+  );
 }
 
 function Projects() {
@@ -129,5 +149,5 @@ function Projects() {
       <Navbar type={"Item"} addModalAs={AddItem} />
       <ProjectsTable />
     </Container>
-  )
+  );
 }

@@ -9,61 +9,85 @@ import {
   Th,
   Thead,
   Tr,
-} from "@chakra-ui/react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect } from "react"
-import { z } from "zod"
+} from "@chakra-ui/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  createFileRoute,
+  useNavigate,
+  useSearch,
+} from "@tanstack/react-router";
+import { useEffect } from "react";
+import { z } from "zod";
 
-import { ProjectsService } from "../../client/index.ts"
-import ActionsMenu from "../../components/Common/ActionsMenu.tsx"
-import Navbar from "../../components/Common/Navbar.tsx"
-import AddItem from "../../components/Items/AddProject.tsx"
-import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
+import { TasksService } from "../../client/index.ts";
+import ActionsMenu from "../../components/Common/ActionsMenu.tsx";
+import Navbar from "../../components/Common/Navbar.tsx";
+import AddItem from "../../components/Items/AddProject.tsx";
+import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx";
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
-})
+});
 
 export const Route = createFileRoute("/_layout/tasks")({
-  component: Projects,
-  validateSearch: (search) => itemsSearchSchema.parse(search),
-})
+  component: Tasks,
+  validateSearch: (search) => {
+    return itemsSearchSchema.parse(search);
+  },
+});
 
-const PER_PAGE = 5
+const PER_PAGE = 5;
 
-function getProjectsQueryOptions({ page }: { page: number }) {
+function getProjectsQueryOptions({ page, id }: { page: number; id?: string }) {
   return {
     queryFn: () =>
-      ProjectsService.readProjects({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-    queryKey: ["projects", { page }],
-  }
+      TasksService.readTasks({
+        id: id,
+        skip: (page - 1) * PER_PAGE,
+        limit: PER_PAGE,
+      }),
+    queryKey: ["project", { page }],
+  };
 }
 
 function ProjectsTable() {
-  const queryClient = useQueryClient()
-  const { page } = Route.useSearch()
-  const navigate = useNavigate({ from: Route.fullPath })
+  const searchParam = useSearch({
+    strict: false,
+  });
+  const prjId = searchParam?.id;
+  const queryClient = useQueryClient();
+  const { page } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const setPage = (page: number) =>
-    navigate({ search: (prev: {[key: string]: string}) => ({ ...prev, page }) })
-
+    navigate({
+      search: (prev: { [key: string]: string }) => ({ ...prev, page }),
+    });
   const {
     data: projects,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getProjectsQueryOptions({ page }),
+    ...getProjectsQueryOptions({ page, id: prjId }),
     placeholderData: (prevData) => prevData,
-  })
+  });
 
-  const hasNextPage = !isPlaceholderData && projects?.data.length === PER_PAGE
-  const hasPreviousPage = page > 1
+  const hasNextPage = !isPlaceholderData && projects?.data.length === PER_PAGE;
+  const hasPreviousPage = page > 1;
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getProjectsQueryOptions({ page: page + 1 }))
+      queryClient.prefetchQuery(
+        getProjectsQueryOptions({ page: page + 1, id: prjId })
+      );
     }
-  }, [page, queryClient, hasNextPage])
+  }, [page, queryClient, hasNextPage]);
+
+  function formatDate(dateInput: string) {
+    const date = new Date(dateInput);
+    const formattedDate = date.toUTCString();
+    console.log(date.toLocaleString());
+    return formattedDate;
+  }
 
   return (
     <>
@@ -73,6 +97,9 @@ function ProjectsTable() {
             <Tr>
               <Th>Name</Th>
               <Th>Description</Th>
+              <Th>Status</Th>
+              <Th>Deadline</Th>
+              <Th>Assignee</Th>
               <Th>Actions</Th>
             </Tr>
           </Thead>
@@ -100,8 +127,17 @@ function ProjectsTable() {
                   >
                     {project.description || "N/A"}
                   </Td>
+                  <Td isTruncated minWidth="150px">
+                    {project.status}
+                  </Td>
+                  <Td isTruncated minWidth="150px">
+                    {formatDate(project.end_date)}
+                  </Td>
+                  <Td isTruncated minWidth="150px">
+                    {project.status}
+                  </Td>
                   <Td>
-                    <ActionsMenu type={"Project"} value={project} />
+                    <ActionsMenu type={"Task"} value={project} />
                   </Td>
                 </Tr>
               ))}
@@ -116,10 +152,10 @@ function ProjectsTable() {
         hasPreviousPage={hasPreviousPage}
       />
     </>
-  )
+  );
 }
 
-function Projects() {
+function Tasks() {
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
@@ -129,5 +165,5 @@ function Projects() {
       <Navbar type={"Item"} addModalAs={AddItem} />
       <ProjectsTable />
     </Container>
-  )
+  );
 }

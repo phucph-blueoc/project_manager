@@ -57,6 +57,32 @@ export type ProjectUpdate = {
   description?: string | null
 }
 
+export type TaskCreate = {
+  name: string
+  description?: string | null
+}
+
+export type TaskPublic = {
+  id: string
+  name: string
+  description: string
+  status: string
+  created_date: string
+  end_date: string
+  project_id: string
+  assigner_id: string
+}
+
+export type TasksPublic = {
+  data: Array<TaskPublic>
+  count: number
+}
+
+export type TaskUpdate = {
+  name?: string | null
+  description?: string | null
+}
+
 export type Message = {
   message: string
 }
@@ -185,6 +211,39 @@ export type ProjectsDeleteProjectData = {
 }
 
 export type ProjectsDeleteProjectResponse = Message
+
+export type TasksReadTasksData = {
+  id?: string,
+  limit?: number
+  skip?: number
+}
+
+export type TasksReadTasksResponse = TasksPublic
+
+export type TasksCreateTaskData = {
+  requestBody: TaskCreate
+}
+
+export type TasksCreateTaskResponse = TaskPublic
+
+export type TasksReadTaskData = {
+  id: string
+}
+
+export type TasksReadTaskResponse = TaskPublic
+
+export type TasksUpdateTaskData = {
+  id: string
+  requestBody: TaskUpdate
+}
+
+export type TasksUpdateTaskResponse = TaskPublic
+
+export type TasksDeleteTaskData = {
+  id: string
+}
+
+export type TasksDeleteTaskResponse = Message
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token
