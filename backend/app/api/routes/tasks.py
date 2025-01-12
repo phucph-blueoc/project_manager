@@ -2,7 +2,7 @@ from enum import Enum
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
@@ -202,6 +202,63 @@ def assign_task(
     session.commit()
     session.refresh(task)
     return task
+
+
+@router.get("", response_model=TasksPublic)
+def search_tasks(
+    *,
+    session: SessionDep,
+    project_id: uuid.UUID,
+    query: str,
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """
+    Search tasks within a project
+    """
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    count_statement = (
+        select(func.count())
+        .select_from(Task)
+        .where(Task.project_id == project_id)
+        .where((Task.name.ilike(f"%{query}%")))
+    )
+    count = session.exec(count_statement).one()
+    query_statement = (
+        select(Task)
+        .where(Task.project_id == project_id)
+        .where((Task.name.ilike(f"%{query}%")))
+        .offset(skip)
+        .limit(limit)
+    )
+    tasks = session.exec(query_statement).all()
+    return TasksPublic(data=tasks, count=count)
+
+
+@router.get("/filter/sort", response_model=TasksPublic)
+def sort_tasks(
+    session: SessionDep,
+    project_id: uuid.UUID,
+    order: str = Query("asc", enum=["asc", "desc"]),
+) -> Any:
+    """
+    Sort tasks by name in ascending or descending order.
+    """
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    order_field = Task.name
+    if order == "desc":
+        order_field = order_field.desc()
+    count_statement = (
+        select(func.count()).select_from(Task).where(Task.project_id == project_id)
+    )
+    count = session.exec(count_statement).one()
+    query = select(Task).where(Task.project_id == project_id).order_by(order_field)
+    tasks = session.exec(query).all()
+    return TasksPublic(data=tasks, count=count)
 
 
 def verify_permissions(current_user: CurrentUser, project_user: Project_User) -> None:
