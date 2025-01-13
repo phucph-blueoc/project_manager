@@ -15,6 +15,9 @@ from app.core.security import get_password_hash, verify_password
 from app.models import (
     Item,
     Message,
+    Project,
+    Project_User,
+    ProjectsList,
     UpdatePassword,
     User,
     UserCreate,
@@ -198,7 +201,7 @@ def update_user(
         )
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
-        if existing_user and existing_user.id != user_id:
+    if existing_user and existing_user.id != user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
@@ -226,3 +229,18 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+@router.get(
+    "/{user_id}/projects",
+    response_model=ProjectsList
+)
+def read_projects(session: SessionDep, user_id, skip: int = 0, limit: int = 100) -> Any:
+    """
+    Get list projects.
+    """
+    count_statement = select(func.count()).select_from(select(Project).join(Project_User, Project_User.project_id == Project.id).where(Project_User.user_id == user_id))
+    count = session.exec(count_statement).one()
+    
+    query = select(Project).join(Project_User, Project_User.project_id == Project.id).where(Project_User.user_id == user_id).offset(skip).limit(limit)
+    projects = session.exec(query).all()
+    return ProjectsList(data=projects, count = count)

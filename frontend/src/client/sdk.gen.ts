@@ -56,6 +56,7 @@ import type {
   ProjectsDeleteProjectResponse,
   TasksReadTasksData,
   TasksReadTasksResponse,
+  ProjectsReadProjectUserResponse,
 } from "./types.gen"
 
 export class ProjectsService {
@@ -73,7 +74,10 @@ export class ProjectsService {
   ): CancelablePromise<ProjectsReadProjectsResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/projects/",
+      url: "/api/v1/users/{id}/projects",
+      path: {
+        id: data.id,
+      },
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -169,6 +173,21 @@ export class ProjectsService {
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/projects/{id}",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  public static readProjectUsers(
+    data: ProjectsReadProjectData,
+  ): CancelablePromise<ProjectsReadProjectUserResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/projects/{id}/members",
       path: {
         id: data.id,
       },
@@ -194,7 +213,7 @@ export class TasksService {
   ): CancelablePromise<TasksReadTasksResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/project/{id}/tasks",
+      url: "/api/v1/projects/{id}/tasks",
       path: {
         id: data.id,
       },
@@ -300,6 +319,8 @@ export class TasksService {
         422: "Validation Error",
       },
     })
+
+
   }
 }
 export class LoginService {

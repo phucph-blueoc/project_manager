@@ -28,6 +28,7 @@ const useAuth = () => {
     enabled: isLoggedIn(),
   })
 
+
   const signUpMutation = useMutation({
     mutationFn: (data: UserRegister) =>
       UsersService.registerUser({ requestBody: data }),
@@ -64,6 +65,7 @@ const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: () => {
+      setUserId()
       navigate({ to: "/" })
     },
     onError: (err: ApiError) => {
@@ -81,6 +83,18 @@ const useAuth = () => {
     },
   })
 
+  const setUserId = () => {
+    if (user?.id) {
+      localStorage.setItem("userID", user.id)
+    }
+  }
+
+  const getUserId = () => {
+    if (user?.id) {
+      return localStorage.getItem("userID")!
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem("access_token")
     navigate({ to: "/login" })
@@ -90,6 +104,7 @@ const useAuth = () => {
     signUpMutation,
     loginMutation,
     logout,
+    getUserId,
     user,
     isLoading,
     error,

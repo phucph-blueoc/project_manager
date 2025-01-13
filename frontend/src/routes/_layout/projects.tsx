@@ -15,12 +15,13 @@ import { createFileRoute, Router, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
 
-import { ProjectsService } from "../../client/index.ts";
+import { ProjectsService, UsersService } from "../../client/index.ts";
 import ActionsMenu from "../../components/Common/ActionsMenu.tsx";
 import Navbar from "../../components/Common/Navbar.tsx";
 import AddItem from "../../components/Items/AddProject.tsx";
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx";
-
+import "./layout.css";
+import useAuth from "../../hooks/useAuth.ts";
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
 });
@@ -32,14 +33,16 @@ export const Route = createFileRoute("/_layout/projects")({
 
 const PER_PAGE = 5;
 
-function getProjectsQueryOptions({ page }: { page: number }) {
+function getProjectsQueryOptions({ page, id }: { page: number; id: string }) {
+  console.log(id);
   return {
     queryFn: () =>
       ProjectsService.readProjects({
+        id: id,
         skip: (page - 1) * PER_PAGE,
         limit: PER_PAGE,
       }),
-    queryKey: ["projects", { page }],
+    queryKey: ["users", { page }],
   };
 }
 
@@ -51,13 +54,14 @@ function ProjectsTable() {
     navigate({
       search: (prev: { [key: string]: string }) => ({ ...prev, page }),
     });
-
+  const { getUserId } = useAuth();
+  const userId = getUserId()!;
   const {
     data: projects,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getProjectsQueryOptions({ page }),
+    ...getProjectsQueryOptions({ page, id: userId }),
     placeholderData: (prevData) => prevData,
   });
 
@@ -66,7 +70,9 @@ function ProjectsTable() {
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getProjectsQueryOptions({ page: page + 1 }));
+      queryClient.prefetchQuery(
+        getProjectsQueryOptions({ page: page + 1, id: userId })
+      );
     }
   }, [page, queryClient, hasNextPage]);
 

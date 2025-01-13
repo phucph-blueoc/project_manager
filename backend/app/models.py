@@ -46,13 +46,20 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
-    task: list["Task"] = Relationship(back_populates="assigner")
+    projects: list["Project"] = Relationship(
+        back_populates="members",
+        sa_relationship_kwargs={"secondary": "project_user"}
+    )
+    task: list["Task"] = Relationship(back_populates="assigner", cascade_delete=True)
+    # project_users: list["Project_User"] = Relationship(back_populates="user", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
 
+class Users(SQLModel):
+    id: uuid.UUID
 
 class UsersPublic(SQLModel):
     data: list[UserPublic]
@@ -124,9 +131,13 @@ class Project(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str
     description: str
-    owner_id: uuid.UUID
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    owner: User | None = Relationship(back_populates="projects")
     task: list["Task"] = Relationship(back_populates="project")
-
+    members: list["User"] = Relationship(
+        back_populates="projects",
+        sa_relationship_kwargs={"secondary": "project_user", "cascade": "all"},
+    )
 
 class ProjectCreate(ProjectBase):
     pass
@@ -193,3 +204,9 @@ class TasksPublic(SQLModel):
 class GetListTask(SQLModel):
     data: list[TaskGet]
     count: int
+    
+class Project_User(SQLModel, table=True):
+    project_id: uuid.UUID = Field(foreign_key="project.id", primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", primary_key=True)
+    role: str = Field(default="member")
+

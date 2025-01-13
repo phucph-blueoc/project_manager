@@ -118,6 +118,18 @@ export type UserPublic = {
   id: string
 }
 
+export type UserPrj = {
+  id: string,
+  email: string,
+  full_name: string,
+  role: string
+}
+
+export type UsersPrj = {
+  data: Array<UserPrj>
+  count: number
+}
+
 export type UserRegister = {
   email: string
   password: string
@@ -181,6 +193,7 @@ export type ItemsDeleteItemData = {
 export type ItemsDeleteItemResponse = Message
 
 export type ProjectsReadProjectsData = {
+  id?: string
   limit?: number
   skip?: number
 }
@@ -198,6 +211,8 @@ export type ProjectsReadProjectData = {
 }
 
 export type ProjectsReadProjectResponse = ProjectPublic
+
+export type ProjectsReadProjectUserResponse = UsersPrj
 
 export type ProjectsUpdateProjectData = {
   id: string
