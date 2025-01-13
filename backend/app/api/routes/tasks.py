@@ -204,7 +204,7 @@ def assign_task(
     return task
 
 
-@router.get("", response_model=TasksPublic)
+@router.get("/search/name", response_model=TasksPublic)
 def search_tasks(
     *,
     session: SessionDep,
